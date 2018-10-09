@@ -65,7 +65,7 @@ class Smspro
             "Telephone"    => $mobile,
             "UserDefineNo" => "00000",
             "Hex"          => "",
-            "Message"      => self::msgEncode($message),
+            "Message"      => $message, //self::msgEncode($message),
             "Sender"       => $this->config['sender'],
         );
 
