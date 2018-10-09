@@ -4,6 +4,11 @@ namespace Huangdijia\Smspro;
 
 class Smspro
 {
+    private $config = [];
+    private $api    = 'http://api.accessyou.com/sms/sendsms.php';
+    private $init   = true;
+    private $errno;
+    private $error;
     protected static $stateMap = [
         1   => 'Message	Sent',
         0   => 'Missing	Values',
