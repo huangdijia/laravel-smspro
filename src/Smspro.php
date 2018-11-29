@@ -179,12 +179,6 @@ class Smspro
             return false;
         }
 
-        if ($response->State != 1) {
-            $this->error = self::$stateMap[$response->State] ?? 'Unknown error';
-            $this->errno = 500;
-            return false;
-        }
-
         return [
             'account' => $this->config['username'],
             'balance' => $xml->CurrentBalance ?? 0,
