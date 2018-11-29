@@ -5,7 +5,7 @@ namespace Huangdijia\Smspro\Console;
 use Exception;
 use Illuminate\Console\Command;
 
-class SmsproSendCommand extends Command
+class SendCommand extends Command
 {
     protected $signature   = 'smspro:send {mobile} {message}';
     protected $description = 'Send a message by smspro';

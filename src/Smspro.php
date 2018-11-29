@@ -5,8 +5,11 @@ namespace Huangdijia\Smspro;
 class Smspro
 {
     private $config = [];
-    private $api    = 'http://api.accessyou.com/sms/sendsms.php';
-    private $init   = true;
+    private $apis   = [
+        'send_sms'    => 'https://api3.hksmspro.com/service/smsapi.asmx/SendSMS',
+        'get_balance' => 'https://api3.hksmspro.com/service/smsapi.asmx/GetBalance',
+    ];
+    private $init = true;
     private $errno;
     private $error;
     protected static $stateMap = [
@@ -71,7 +74,7 @@ class Smspro
 
         $ch      = curl_init();
         $options = array(
-            CURLOPT_URL            => $this->config['api'],
+            CURLOPT_URL            => $this->apis['send_sms'],
             CURLOPT_HEADER         => 0,
             CURLOPT_VERBOSE        => 0,
             CURLOPT_RETURNTRANSFER => true,
@@ -120,6 +123,73 @@ class Smspro
         }
 
         return true;
+    }
+
+    public function info()
+    {
+        $data = [
+            'Username'     => $this->config['username'] ?? '',
+            'Password'     => $this->config['password'] ?? '',
+            'ResponseID'   => '',
+            'UserDefineNo' => '',
+        ];
+
+        $ch      = curl_init();
+        $options = array(
+            CURLOPT_URL            => $this->apis['get_balance'],
+            CURLOPT_HEADER         => 0,
+            CURLOPT_VERBOSE        => 0,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_POSTFIELDS     => http_build_query($data),
+        );
+
+        curl_setopt_array($ch, $options);
+        $response = curl_exec($ch);
+        $errno    = curl_errno($ch);
+        $error    = curl_error($ch);
+
+        if (false === $response) {
+            $this->error = "request faild";
+            $this->errno = 401;
+            return false;
+        }
+
+        if ($errno) {
+            $this->error = "request faild";
+            $this->errno = 401;
+            return false;
+        }
+
+        $response = trim($response);
+        if ($response == '') {
+            $this->error = "empty response";
+            $this->errno = 402;
+            return false;
+        }
+
+        try {
+            $response = simplexml_load_string($response);
+            $response = json_encode($response);
+            $response = json_decode($response);
+        } catch (\Exception $e) {
+            $this->error = $e->getMessage();
+            $this->errno = 403;
+            return false;
+        }
+
+        if ($response->State != 1) {
+            $this->error = self::$stateMap[$response->State] ?? 'Unknown error';
+            $this->errno = 500;
+            return false;
+        }
+
+        return [
+            'account' => $this->config['username'],
+            'balance' => $xml->CurrentBalance ?? 0,
+            'credit'  => $xml->CreditLine ?? 0,
+        ];
     }
 
     public function getError()

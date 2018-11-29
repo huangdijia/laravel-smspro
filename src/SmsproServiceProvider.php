@@ -7,29 +7,35 @@ use Illuminate\Support\ServiceProvider;
 class SmsproServiceProvider extends ServiceProvider
 {
     protected $defer = true;
+
     protected $commands = [
-        'Huangdijia\\Smspro\\Console\\SmsproSendCommand',
+        SendCommand::class,
+        InfoCommand::class,
     ];
 
     public function boot()
     {
         if ($this->app->runningInConsole()) {
-            $this->publishes([__DIR__.'/../config/config.php' => config_path('smspro.php')]);
+            $this->publishes([__DIR__ . '/../config/config.php' => config_path('smspro.php')]);
         }
     }
 
     public function register()
     {
-        $this->app->singleton('sms.smspro', function () {
+        $this->app->singleton(Smsrpo::class, function () {
             return new Smspro(config('smspro'));
         });
+
+        $this->app->alias(Smsrpo::class, 'sms.smspro');
+
         $this->commands($this->commands);
     }
 
     public function provides()
     {
         return [
-            'sms.smspro'
+            Smsrpo::class,
+            'sms.smspro',
         ];
     }
 }
