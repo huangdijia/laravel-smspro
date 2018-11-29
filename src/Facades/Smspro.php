@@ -3,6 +3,7 @@
 namespace Huangdijia\Smspro\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use Huangdijia\Smspro\Smspro as Accessor;
 
 /**
  * @method static boolean send($mobile, $message)
@@ -13,6 +14,6 @@ class Smspro extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return 'sms.smspro'; 
+        return Accessor::class; 
     }
 }
