@@ -3,6 +3,8 @@
 namespace Huangdijia\Smspro;
 
 use Illuminate\Support\ServiceProvider;
+use Huangdijia\Smspro\Console\InfoCommand;
+use Huangdijia\Smspro\Console\SendCommand;
 
 class SmsproServiceProvider extends ServiceProvider
 {
