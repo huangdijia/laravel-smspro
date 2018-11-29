@@ -181,8 +181,8 @@ class Smspro
 
         return [
             'account' => $this->config['username'],
-            'balance' => $xml->CurrentBalance ?? 0,
-            'credit'  => $xml->CreditLine ?? 0,
+            'balance' => $response->CurrentBalance ?? 0,
+            'credit'  => $response->CreditLine ?? 0,
         ];
     }
 
