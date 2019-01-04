@@ -32,7 +32,7 @@
             "providers": [
                 "Huangdijia\\Smspro\\SmsproServiceProvider"
             ],
-            "alias": {
+            "aliases": {
                 "Smspro": "Huangdijia\\Smspro\\Facades\\Smspro"
             }
         }
