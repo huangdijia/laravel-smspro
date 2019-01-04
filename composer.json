@@ -31,7 +31,10 @@
         "laravel": {
             "providers": [
                 "Huangdijia\\Smspro\\SmsproServiceProvider"
-            ]
+            ],
+            "alias": {
+                "Smspro": "Huangdijia\\Smspro\\Facades\\Smspro"
+            }
         }
     }
 }
