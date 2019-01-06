@@ -73,7 +73,7 @@ class Smspro
         );
 
         $ch      = curl_init();
-        $options = array(
+        $options = [
             CURLOPT_URL            => $this->apis['send_sms'],
             CURLOPT_HEADER         => 0,
             CURLOPT_VERBOSE        => 0,
@@ -81,11 +81,14 @@ class Smspro
             CURLOPT_POST           => true,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_POSTFIELDS     => http_build_query($data),
-        );
+        ];
+
         curl_setopt_array($ch, $options);
+
         $response = curl_exec($ch);
-        $errno    = curl_errno($ch);
-        $error    = curl_error($ch);
+
+        $errno = curl_errno($ch);
+        $error = curl_error($ch);
 
         if (false === $response) {
             $this->error = "request faild";
@@ -100,6 +103,7 @@ class Smspro
         }
 
         $response = trim($response);
+
         if ($response == '') {
             $this->error = "empty response";
             $this->errno = 402;
@@ -135,7 +139,7 @@ class Smspro
         ];
 
         $ch      = curl_init();
-        $options = array(
+        $options = [
             CURLOPT_URL            => $this->apis['get_balance'],
             CURLOPT_HEADER         => 0,
             CURLOPT_VERBOSE        => 0,
@@ -143,9 +147,10 @@ class Smspro
             CURLOPT_POST           => true,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_POSTFIELDS     => http_build_query($data),
-        );
+        ];
 
         curl_setopt_array($ch, $options);
+
         $response = curl_exec($ch);
         $errno    = curl_errno($ch);
         $error    = curl_error($ch);
@@ -163,6 +168,7 @@ class Smspro
         }
 
         $response = trim($response);
+        
         if ($response == '') {
             $this->error = "empty response";
             $this->errno = 402;
