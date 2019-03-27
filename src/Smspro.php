@@ -25,21 +25,23 @@ class Smspro
         100 => 'System error, please try again',
     ];
 
-    public function __construct($config)
+    public function __construct($config = [])
     {
-        $this->config = $config;
         if (empty($config['username'])) {
             $this->error = "config smspro.username is undefined";
             $this->errno = 101;
             $this->init  = false;
             return;
         }
+
         if (empty($config['password'])) {
             $this->error = "config smspro.password is undefined";
             $this->errno = 102;
             $this->init  = false;
             return;
         }
+
+        $this->config = $config;
     }
 
     public function send($mobile = '', $message = '')
@@ -168,7 +170,7 @@ class Smspro
         }
 
         $response = trim($response);
-        
+
         if ($response == '') {
             $this->error = "empty response";
             $this->errno = 402;
