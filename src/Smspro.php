@@ -93,13 +93,13 @@ class Smspro
         $error = curl_error($ch);
 
         if (false === $response) {
-            $this->error = "request faild";
+            $this->error = "curl exec failure";
             $this->errno = 401;
             return false;
         }
 
         if ($errno) {
-            $this->error = "request faild";
+            $this->error = "curl exec error, errno={$errno}, error={$error}";
             $this->errno = 401;
             return false;
         }
