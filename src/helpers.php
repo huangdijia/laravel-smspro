@@ -9,12 +9,6 @@ if (!function_exists('smspro')) {
 if (!function_exists('smspro_send')) {
     function smspro_send($mobile = '', $message = '')
     {
-        $smspro = app('sms.smspro');
-
-        if (!$smspro->send($mobile, $message)) {
-            return $smspro->getError();
-        }
-        
-        return true;
+        return app('sms.smspro')->send($mobile, $message);
     }
 }

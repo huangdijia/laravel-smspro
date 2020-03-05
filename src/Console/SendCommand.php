@@ -2,6 +2,7 @@
 
 namespace Huangdijia\Smspro\Console;
 
+use Exception;
 use Illuminate\Console\Command;
 
 class SendCommand extends Command
@@ -13,10 +14,12 @@ class SendCommand extends Command
     {
         $mobile  = $this->argument('mobile');
         $message = $this->argument('message');
-        $smspro  = app('sms.smspro');
 
-        if (!$smspro->send($mobile, $message)) {
-            $this->error($smspro->getError());
+        try {
+            $this->laravel->make('sms.smspro')->send($mobile, $message);
+        } catch (Exception $e) {
+            $this->error($e->getMessage());
+            return;
         }
 
         $this->info('send success!');

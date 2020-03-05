@@ -2,6 +2,7 @@
 
 namespace Huangdijia\Smspro\Console;
 
+use Exception;
 use Illuminate\Console\Command;
 
 class InfoCommand extends Command
@@ -11,10 +12,10 @@ class InfoCommand extends Command
 
     public function handle()
     {
-        $smspro = app('sms.smspro');
-
-        if (!$result = $smspro->info()) {
-            $this->error($smspro->getError());
+        try {
+            $result = $this->laravel->make('sms.smspro')->info();
+        } catch (Exception $e) {
+            $this->error($e->getMessage());
             return;
         }
 

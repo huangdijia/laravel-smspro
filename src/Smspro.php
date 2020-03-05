@@ -2,6 +2,9 @@
 
 namespace Huangdijia\Smspro;
 
+use Exception;
+use Illuminate\Support\Facades\Http;
+
 class Smspro
 {
     private $config = [];
@@ -9,9 +12,6 @@ class Smspro
         'send_sms'    => 'https://api3.hksmspro.com/service/smsapi.asmx/SendSMS',
         'get_balance' => 'https://api3.hksmspro.com/service/smsapi.asmx/GetBalance',
     ];
-    private $init = true;
-    private $errno;
-    private $error;
     protected static $stateMap = [
         1   => 'Message	Sent',
         0   => 'Missing	Values',
@@ -25,44 +25,27 @@ class Smspro
         100 => 'System error, please try again',
     ];
 
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
-        if (empty($config['username'])) {
-            $this->error = "config smspro.username is undefined";
-            $this->errno = 101;
-            $this->init  = false;
-            return;
-        }
-
-        if (empty($config['password'])) {
-            $this->error = "config smspro.password is undefined";
-            $this->errno = 102;
-            $this->init  = false;
-            return;
-        }
-
         $this->config = $config;
     }
 
+    /**
+     * Send sms
+     * @param string $mobile
+     * @param string $message
+     * @return true
+     * @throws Exception
+     */
     public function send($mobile = '', $message = '')
     {
-        if (!$this->init) {
-            return false;
-        }
+        throw_if(empty($this->config['username']), new Exception("config smspro.username is undefined", 101));
 
-        $this->error = null;
-        $this->errno = null;
+        throw_if(empty($this->config['password']), new Exception("config smspro.password is undefined", 102));
 
-        if (!$this->checkMobile($mobile)) {
-            $this->error = "invalid mobile";
-            $this->errno = 103;
-            return false;
-        }
-        if (!$this->checkMessage($message)) {
-            $this->error = "message is empty";
-            $this->errno = 104;
-            return false;
-        }
+        throw_if(!$this->checkMobile($mobile), new Exception("invalid mobile", 103));
+
+        throw_if(!$this->checkMessage($message), new Exception("message is empty", 104));
 
         $data = array(
             "Username"     => $this->config['username'],
@@ -74,141 +57,74 @@ class Smspro
             "Sender"       => $this->config['sender'],
         );
 
-        $ch      = curl_init();
-        $options = [
-            CURLOPT_URL            => $this->apis['send_sms'],
-            CURLOPT_HEADER         => 0,
-            CURLOPT_VERBOSE        => 0,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_POSTFIELDS     => http_build_query($data),
-        ];
+        $response = Http::asForm()->post($this->apis['send_sms'], $data)->throw();
+        $content  = trim($response->body());
 
-        curl_setopt_array($ch, $options);
-
-        $response = curl_exec($ch);
-
-        $errno = curl_errno($ch);
-        $error = curl_error($ch);
-
-        if (false === $response) {
-            $this->error = "curl exec failure";
-            $this->errno = 401;
-            return false;
-        }
-
-        if ($errno) {
-            $this->error = "curl exec error, errno={$errno}, error={$error}";
-            $this->errno = 401;
-            return false;
-        }
-
-        $response = trim($response);
-
-        if ($response == '') {
-            $this->error = "empty response";
-            $this->errno = 402;
-            return false;
-        }
+        throw_if($content == '', new Exception('Response body is empty!', 402));
 
         try {
-            $response = simplexml_load_string($response);
-            $response = json_encode($response);
-            $response = json_decode($response);
+            $result = simplexml_load_string($content);
+            $result = json_encode($result);
+            $result = json_decode($result);
         } catch (\Exception $e) {
-            $this->error = $e->getMessage();
-            $this->errno = 403;
-            return false;
+            throw new Exception($e->getMessage(), 403);
         }
 
-        if ($response->State != 1) {
-            $this->error = self::$stateMap[$response->State] ?? 'Unknown error';
-            $this->errno = 500;
-            return false;
-        }
+        throw_if($result->State != 1, new Exception(self::$stateMap[$result->State] ?? 'Unknown error', 500));
 
         return true;
     }
 
-    public function info()
+    /**
+     * Get info
+     * @return false|array
+     */
+    public function info(array $config = [])
     {
+        $config = array_merge($this->config, $config);
+
         $data = [
-            'Username'     => $this->config['username'] ?? '',
-            'Password'     => $this->config['password'] ?? '',
+            'Username'     => $config['username'] ?? '',
+            'Password'     => $config['password'] ?? '',
             'ResponseID'   => '',
             'UserDefineNo' => '',
         ];
 
-        $ch      = curl_init();
-        $options = [
-            CURLOPT_URL            => $this->apis['get_balance'],
-            CURLOPT_HEADER         => 0,
-            CURLOPT_VERBOSE        => 0,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_POSTFIELDS     => http_build_query($data),
-        ];
+        $response = Http::asForm()->post($this->apis['get_balance'], $data)->throw();
+        $content  = trim($response->body());
 
-        curl_setopt_array($ch, $options);
-
-        $response = curl_exec($ch);
-        $errno    = curl_errno($ch);
-        $error    = curl_error($ch);
-
-        if (false === $response) {
-            $this->error = "request faild";
-            $this->errno = 401;
-            return false;
-        }
-
-        if ($errno) {
-            $this->error = "request faild";
-            $this->errno = 401;
-            return false;
-        }
-
-        $response = trim($response);
-
-        if ($response == '') {
-            $this->error = "empty response";
-            $this->errno = 402;
-            return false;
-        }
+        throw_if($content == '', new Exception('Response body is empty!', 402));
 
         try {
-            $response = simplexml_load_string($response);
-            $response = json_encode($response);
-            $response = json_decode($response);
+            $result = simplexml_load_string($content);
+            $result = json_encode($result);
+            $result = json_decode($result);
         } catch (\Exception $e) {
-            $this->error = $e->getMessage();
-            $this->errno = 403;
-            return false;
+            throw new Exception($e->getMessage(), 403);
         }
 
         return [
-            'account' => $this->config['username'],
-            'balance' => $response->CurrentBalance ?? 0,
-            'credit'  => $response->CreditLine ?? 0,
+            'account' => $config['username'],
+            'balance' => $result->CurrentBalance ?? 0,
+            'credit'  => $result->CreditLine ?? 0,
         ];
     }
 
-    public function getError()
-    {
-        return $this->error;
-    }
-
-    public function getErrno()
-    {
-        return $this->errno;
-    }
-
+    /**
+     * Check mobile
+     * @param string $mobile
+     * @return bool
+     */
     private function checkMobile($mobile = '')
     {
-        return preg_match('/^(4|5|6|7|8|9)\d{7}$/', $mobile);
+        return preg_match('/^(4|5|6|7|8|9)\d{7}$/', $mobile) ? true : false;
     }
 
+    /**
+     * Check message
+     * @param string $message
+     * @return bool
+     */
     private function checkMessage($message = '')
     {
         return !empty($message) ? true : false;
